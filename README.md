@@ -1,5 +1,3 @@
-Vou montar uma doc única cobrindo backend + frontend, no seu estilo (minúsculo, direto, sem formalidade excessiva), juntando o que já existe nos dois READMEs.
-
 ```markdown
 # sistema de vendas — backend (c++ + sqlite3) + frontend (c++ puro)
 
@@ -7,10 +5,32 @@ sistema completo de gestao de vendas: backend em c++17 com api rest e
 persistencia em sqlite3, e um frontend tambem em c++ puro (sem react, sem js)
 que monta as paginas em html e conversa com a api por tras.
 
+## clonar e rodar (resumo rapido)
+
+```
+git clone https://github.com/efraimjnegreiros/merko.git
+cd merko
+
+cd sistema_vendas
+make
+./sistema_vendas_api 8080
+```
+
+em outro terminal:
+
+```
+cd merko
+cd merko-front
+make
+./merko_front 3000 localhost 8080
+```
+
+ai é so abrir http://localhost:3000 no navegador.
+
 ## estrutura geral
 
 ```
-.
+merko/
 ├── sistema_vendas/        # backend (api + logica de negocio + banco)
 │   ├── include/
 │   ├── src/
@@ -79,9 +99,16 @@ o sqlite3 ta embutido no projeto como **amalgamation** (`sqlite3.c` +
 `sqlite3.h` em `third_party/sqlite3/`), entao **nao precisa instalar
 libsqlite3-dev** — o makefile compila o amalgamation junto com o resto.
 
-## como rodar
+## como rodar (passo a passo)
 
-precisa da api rodando primeiro:
+### 1. clonar o repositorio
+
+```
+git clone https://github.com/efraimjnegreiros/merko.git
+cd merko
+```
+
+### 2. subir a api (backend)
 
 ```
 cd sistema_vendas
@@ -89,18 +116,22 @@ make
 ./sistema_vendas_api 8080
 ```
 
-depois o front, em outro terminal:
+deixa esse terminal aberto, a api fica rodando ate dar Ctrl+C.
+
+### 3. subir o front, em outro terminal
 
 ```
-cd merko-front
+cd merko/merko-front
 make
 ./merko_front 3000 localhost 8080
 ```
 
-ai é so abrir http://localhost:3000 no navegador.
-
 os parametros do front sao: porta do front, host da api e porta da api. se
 nao passar nada usa 3000, localhost e 8080.
+
+### 4. abrir no navegador
+
+http://localhost:3000
 
 obs: a primeira compilacao demora um pouco pq o httplib é grande.
 
@@ -235,6 +266,7 @@ curl http://localhost:8080/vendedores/2/comissao
 
 ## requisitos
 
-`g++` (c++17), `gcc`, `make`. nenhuma dependencia externa — sqlite3, httplib
-e nlohmann/json ja estao embutidos em `third_party/` nos dois projetos.
+`git`, `g++` (c++17), `gcc`, `make`. nenhuma dependencia externa alem disso —
+sqlite3, httplib e nlohmann/json ja estao embutidos em `third_party/` nos
+dois projetos.
 ```
