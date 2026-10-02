@@ -1,0 +1,20 @@
+# coisas do build
+build/
+*.o
+
+# executavel
+merko_front
+merko_front.exe
+
+# logs
+*.log
+
+# editor
+.vscode/
+.idea/
+*.swp
+*~
+
+# sistema
+.DS_Store
+Thumbs.db
