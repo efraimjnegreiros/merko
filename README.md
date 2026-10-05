@@ -111,6 +111,7 @@ libsqlite3-dev** — o makefile compila o amalgamation junto com o resto.
 
 ```
 git clone https://github.com/efraimjnegreiros/merko.git
+
 cd merko
 ```
 
@@ -118,7 +119,9 @@ cd merko
 
 ```
 cd sistema_vendas
+
 make
+
 ./sistema_vendas_api 8080
 ```
 
@@ -128,7 +131,9 @@ deixa esse terminal aberto, a api fica rodando ate dar Ctrl+C.
 
 ```
 cd merko/merko-front
+
 make
+
 ./merko_front 3000 localhost 8080
 ```
 
@@ -149,8 +154,11 @@ binario e forca a recompilacao local:
 
 ```
 rm -f merko_front
+
 make clean
+
 make
+
 ./merko_front 3000 localhost 8080
 ```
 
@@ -161,6 +169,7 @@ maquina — resolve praticamente todo caso de binario que nao roda.
 
 ```
 cd sistema_vendas
+
 make run
 ```
 
