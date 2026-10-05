@@ -8,7 +8,7 @@ que monta as paginas em html e conversa com a api por tras.
 ## clonar e rodar (resumo rapido)
 
 ```
-git clone https://github.com/efraimjnegreiros/merko.git
+git clone https://github.com/efraimjnegreiros/merko.git \n
 cd merko
 
 cd sistema_vendas
