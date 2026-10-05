@@ -13,7 +13,9 @@ git clone https://github.com/efraimjnegreiros/merko.git
 cd merko
 
 cd sistema_vendas
+
 make
+
 ./sistema_vendas_api 8080
 ```
 
@@ -21,8 +23,11 @@ em outro terminal:
 
 ```
 cd merko
+
 cd merko-front
+
 make
+
 ./merko_front 3000 localhost 8080
 ```
 
