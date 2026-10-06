@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sistema de Vendas — C++ · SQLite3 · API REST</title>
+<meta name="description" content="Sistema de gestão de vendas em C++17 com persistência em SQLite3, API REST e frontend renderizado no servidor.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,300..700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fbfaf7; --surface: #ffffff; --border: #e3e0d6;
+    --text: #15181c; --text-muted: #4a4f58; --text-faint: #6f747d;
+    --accent: #e0a526; --accent-dark: #8f6209; --danger: #a32d2d; --ok: #3f7a12;
+    --font-serif: 'Source Serif 4', Georgia, serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #15181c; --surface: #1e2227; --border: #2e343c;
+      --text: #f2f0ea; --text-muted: #c2c6ce; --text-faint: #98a0aa;
+      --accent-dark: #e0a526; --danger: #e57373; --ok: #8bc34a;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #15181c; --surface: #1e2227; --border: #2e343c;
+    --text: #f2f0ea; --text-muted: #c2c6ce; --text-faint: #98a0aa;
+    --accent-dark: #e0a526; --danger: #e57373; --ok: #8bc34a;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: env(safe-area-inset-top, 0px); }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: var(--font-serif); font-weight: 300; line-height: 1.6;
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  /* Um único container para tudo: mesma largura e mesmas margens laterais */
+  .container { width: 100%; max-width: 960px; margin: 0 auto; padding: 0 28px; }
+
+  /* ===== Título ===== */
+  .titleblock { padding: 80px 0 40px; text-align: center; }
+  .venue { font-family: var(--font-mono); font-size: 14px; color: var(--accent-dark); letter-spacing: 1px; margin: 0 0 24px; }
+  h1 { font-size: clamp(30px, 5vw, 44px); font-weight: 600; line-height: 1.2; margin: 0 auto 24px; max-width: 820px; text-wrap: balance; }
+  .authors {
+    list-style: none; margin: 0 auto 10px; padding: 0; max-width: 760px;
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 28px;
+    font-size: 18px; font-weight: 400;
+  }
+  .authors li { white-space: nowrap; }
+  .affiliation { font-size: 15px; color: var(--text-faint); margin: 0 0 32px; font-family: var(--font-mono); }
+
+  .link-badges { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .badge {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px; line-height: 1;
+    font-family: var(--font-mono); font-size: 14px; font-weight: 500;
+    padding: 12px 20px; border-radius: 8px; text-decoration: none;
+    border: 1px solid var(--border); color: var(--text); background: var(--surface);
+  }
+  .badge:hover { border-color: var(--text-faint); }
+  .badge:focus-visible, .video-frame:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .badge.primary { background: var(--text); color: var(--bg); border-color: var(--text); }
+  .badge svg { width: 16px; height: 16px; flex-shrink: 0; display: block; }
+
+  /* ===== Arquitetura: grid com caixas de mesma altura e setas centralizadas ===== */
+  .arch { padding: 8px 0 64px; }
+  .arch-frame { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+  .arch-chrome { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-bottom: 1px solid var(--border); background: var(--bg); }
+  .dot-sm { width: 9px; height: 9px; border-radius: 50%; background: var(--border); }
+  .arch-title { font-family: var(--font-mono); font-size: 13px; color: var(--text-faint); margin-left: 8px; }
+  .arch-body { padding: 28px; display: grid; grid-template-columns: 1fr; gap: 12px; }
+  @media (min-width: 800px) { .arch-body { grid-template-columns: 1fr auto 1fr auto 1fr; gap: 16px; } }
+  .arch-box {
+    background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 22px 18px;
+    text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 6px;
+  }
+  .arch-box .t { font-family: var(--font-mono); font-size: 12px; color: var(--text-faint); margin: 0; letter-spacing: 1px; }
+  .arch-box .n { font-family: var(--font-mono); font-size: 16px; font-weight: 600; margin: 0; overflow-wrap: anywhere; }
+  .arch-box .d { font-size: 14px; color: var(--text-muted); margin: 0; line-height: 1.5; }
+  .arch-sep { align-self: center; justify-self: center; color: var(--text-faint); font-size: 22px; line-height: 1; }
+  .arch-sep::before { content: '↓'; }
+  @media (min-width: 800px) { .arch-sep::before { content: '→'; } }
+
+  /* ===== Seções: padding vertical na seção, largura no .container interno ===== */
+  section { padding: 56px 0; border-top: 1px solid var(--border); }
+  section.first { border-top: 0; padding-top: 0; }
+  h2 {
+    font-family: var(--font-mono); font-size: 15px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px;
+    margin: 0 0 24px; display: flex; align-items: center; gap: 12px;
+  }
+  h2::before { content: ''; width: 20px; height: 3px; background: var(--accent); border-radius: 2px; flex-shrink: 0; }
+  .abstract { font-size: 19px; color: var(--text-muted); line-height: 1.75; margin: 0; }
+  .abstract.sm { font-size: 17px; }
+  .abstract b { color: var(--text); font-weight: 600; }
+
+  .highlights { display: grid; grid-template-columns: 1fr; gap: 16px; }
+  @media (min-width: 640px) { .highlights { grid-template-columns: repeat(2, 1fr); } }
+  .hl-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 24px; display: flex; flex-direction: column; gap: 8px; }
+  .hl-card .num { font-family: var(--font-mono); font-size: 13px; color: var(--accent-dark); margin: 0; }
+  .hl-card h3 { font-size: 18px; font-weight: 600; margin: 0; line-height: 1.3; }
+  .hl-card p:last-child { font-size: 15px; color: var(--text-muted); margin: 0; line-height: 1.5; }
+
+  .pill-row { display: flex; flex-wrap: wrap; gap: 10px; }
+  .pill { font-family: var(--font-mono); font-size: 14px; color: var(--text-muted); border: 1px solid var(--border); border-radius: 8px; padding: 8px 14px; background: var(--surface); }
+  .pill b { color: var(--text); font-weight: 500; }
+
+  /* ===== Telas (SVG herdam as cores do tema) ===== */
+  .mock-note { background: var(--surface); border: 1px dashed var(--border); border-radius: 10px; padding: 12px 16px; font-family: var(--font-mono); font-size: 13px; color: var(--text-faint); margin: 0 0 24px; }
+  .gallery { display: grid; grid-template-columns: 1fr; gap: 20px; }
+  @media (min-width: 720px) { .gallery { grid-template-columns: repeat(2, 1fr); } }
+  .shot { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; }
+  .shot-body { padding: 16px; flex: 1; }
+  .shot-body svg { display: block; width: 100%; height: auto; font-family: var(--font-mono); font-size: 12px; }
+  .shot-caption { padding: 12px 20px; border-top: 1px solid var(--border); }
+  .shot-caption p { margin: 0; font-size: 13px; color: var(--text-faint); font-family: var(--font-mono); }
+  .s-hd { fill: var(--text); } .s-hdt { fill: var(--bg); font-size: 14px; }
+  .s-bg { fill: var(--bg); } .s-sf { fill: var(--surface); }
+  .s-box { fill: var(--bg); stroke: var(--border); } .s-line { fill: none; stroke: var(--border); }
+  .s-t { fill: var(--text-muted); } .s-x { fill: var(--text); } .s-f { fill: var(--text-faint); }
+  .s-ac { fill: var(--accent-dark); } .s-bad { fill: var(--danger); } .s-ok { fill: var(--ok); }
+  .s-btn { fill: var(--accent); } .s-btnt { fill: #15181c; }
+  .s-b { font-weight: 600; }
+
+  /* ===== Vídeo ===== */
+  .video-frame { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; aspect-ratio: 16/9; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 14px; text-decoration: none; padding: 16px; }
+  .video-frame .play { width: 56px; height: 56px; border-radius: 50%; background: var(--text); display: flex; align-items: center; justify-content: center; }
+  .video-frame .play svg { width: 20px; height: 20px; fill: var(--bg); margin-left: 3px; display: block; }
+  .video-frame p { font-family: var(--font-mono); font-size: 14px; color: var(--text-faint); margin: 0; text-align: center; }
+
+  /* ===== Tabela ===== */
+  .table-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; }
+  table.endpoints { width: 100%; min-width: 560px; border-collapse: collapse; font-size: 15px; table-layout: fixed; }
+  table.endpoints col.c1 { width: 110px; } table.endpoints col.c2 { width: 240px; }
+  table.endpoints th { text-align: left; font-family: var(--font-mono); font-size: 12px; color: var(--text-faint); font-weight: 500; padding: 12px 16px; border-bottom: 1px solid var(--border); }
+  table.endpoints td { padding: 12px 16px; border-bottom: 1px solid var(--border); vertical-align: middle; line-height: 1.4; }
+  table.endpoints tr:last-child td { border-bottom: 0; }
+  table.endpoints td:nth-child(1) { font-family: var(--font-mono); color: var(--accent-dark); font-size: 13px; }
+  table.endpoints td:nth-child(2) { font-family: var(--font-mono); font-size: 14px; overflow-wrap: anywhere; }
+  table.endpoints td:nth-child(3) { color: var(--text-muted); font-size: 14px; }
+
+  footer { padding: 48px 0 calc(48px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--border); text-align: center; }
+  footer p { color: var(--text-faint); font-size: 14px; margin: 0 0 8px; font-family: var(--font-mono); }
+  footer a { color: var(--text-muted); }
+</style>
+</head>
+<body>
+
+<main>
+
+  <header class="container titleblock">
+    <p class="venue">CIN0135 · Estruturas de Dados Orientadas a Objetos · UFPE</p>
+    <h1>Sistema de Vendas: gestão de pessoas, estoque e transações</h1>
+    <ul class="authors">
+      <li>Efraim José Negreiros dos Santos</li>
+      <li>Eric Souza de Almeida</li>
+      <li>Dimitri Juliano de Almeida da Silva</li>
+      <li>Emanuel Terto de Farias</li>
+    </ul>
+    <p class="affiliation">Centro de Informática — UFPE</p>
+    <div class="link-badges">
+      <a class="badge primary" href="https://github.com/efraimjnegreiros/merko" target="_blank" rel="noopener">
+        <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+        Código
+      </a>
+      <a class="badge" href="#relatorio">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M4 1h6l4 4v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1Zm6 0v4h4"/></svg>
+        Relatório
+      </a>
+      <a class="badge" href="#video">
+        <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><rect x="1" y="3" width="14" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M6.5 6l4 2-4 2V6Z"/></svg>
+        Vídeo
+      </a>
+      <a class="badge" href="#api">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><rect x="1.5" y="1.5" width="13" height="13" rx="2"/><path d="M4.5 6h7M4.5 9h7M4.5 12h4"/></svg>
+        API
+      </a>
+    </div>
+  </header>
+
+  <div class="container arch">
+    <div class="arch-frame">
+      <div class="arch-chrome"><span class="dot-sm"></span><span class="dot-sm"></span><span class="dot-sm"></span><span class="arch-title">arquitetura do sistema</span></div>
+      <div class="arch-body">
+        <div class="arch-box">
+          <p class="t">FRONTEND</p>
+          <p class="n">merko-front</p>
+          <p class="d">C++ puro, renderiza o HTML no servidor</p>
+        </div>
+        <div class="arch-sep" aria-hidden="true"></div>
+        <div class="arch-box">
+          <p class="t">BACKEND / API</p>
+          <p class="n">sistema_vendas_api</p>
+          <p class="d">Domínio C++17, DAOs e rotas REST em JSON</p>
+        </div>
+        <div class="arch-sep" aria-hidden="true"></div>
+        <div class="arch-box">
+          <p class="t">PERSISTÊNCIA</p>
+          <p class="n">SQLite3</p>
+          <p class="d">Herança mapeada: tabela base + subtipo</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section class="first">
+    <div class="container">
+      <h2>Resumo</h2>
+      <p class="abstract">
+        Apresentamos um <b>sistema de gestão de vendas</b> construído inteiramente em <b>C++17</b>, cobrindo o ciclo completo de uma aplicação de negócio: modelagem de domínio orientada a objetos, persistência relacional e interface web — sem depender de frameworks externos. O domínio é organizado em quatro hierarquias abstratas (<b>Pessoas</b>, <b>Produtos</b>, <b>Transações</b> e <b>Pagamentos</b>), cada uma explorando herança e polimorfismo reais via métodos virtuais puros. A persistência usa <b>SQLite3</b> embutido como amalgamation, com uma camada de <b>DAO</b> que mapeia a herança do domínio para tabelas relacionais e reconstrói os objetos polimórficos a partir do banco. O backend expõe uma <b>API REST</b> via cpp-httplib, e um segundo programa (<b>merko-front</b>) consome essa API para renderizar as telas no servidor, inteiramente em C++, sem JavaScript.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <div class="container">
+      <h2>O que o sistema faz</h2>
+      <div class="highlights">
+        <div class="hl-card"><p class="num">01</p><h3>Cadastro de pessoas</h3><p>Clientes, vendedores (com comissão) e fornecedores, todos herdando de uma classe Pessoa comum.</p></div>
+        <div class="hl-card"><p class="num">02</p><h3>Controle de estoque</h3><p>Produtos perecíveis e não perecíveis, com alerta de validade, garantia e baixo estoque.</p></div>
+        <div class="hl-card"><p class="num">03</p><h3>Compras e vendas</h3><p>Transações com múltiplos itens, desconto percentual e atualização automática de estoque.</p></div>
+        <div class="hl-card"><p class="num">04</p><h3>Pagamentos</h3><p>Dinheiro (com troco), cartão (parcelado) e Pix, cada um com sua própria validação.</p></div>
+        <div class="hl-card"><p class="num">05</p><h3>Cálculo de comissão</h3><p>Comissão do vendedor calculada sobre o total efetivamente vendido no período.</p></div>
+        <div class="hl-card"><p class="num">06</p><h3>API REST completa</h3><p>CRUD de toda entidade via HTTP/JSON, pronta para qualquer cliente consumir.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="container">
+      <h2>Stack</h2>
+      <div class="pill-row">
+        <span class="pill"><b>C++17</b> · domínio e lógica de negócio</span>
+        <span class="pill"><b>SQLite3</b> · persistência (amalgamation embutido)</span>
+        <span class="pill"><b>cpp-httplib</b> · servidor HTTP (API e frontend)</span>
+        <span class="pill"><b>nlohmann/json</b> · serialização JSON</span>
+        <span class="pill"><b>g++ / gcc / make</b> · build, sem dependências de sistema</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="telas">
+    <div class="container">
+      <h2>Telas</h2>
+      <p class="mock-note">Representações ilustrativas das telas — não são capturas reais do app em execução.</p>
+      <div class="gallery">
+
+        <!-- Estoque -->
+        <figure class="shot" style="margin:0">
+          <div class="shot-body">
+            <svg viewBox="0 0 520 230" role="img" aria-label="Mockup da tela de estoque">
+              <rect class="s-hd" x="0" y="0" width="520" height="40" rx="6"/>
+              <text class="s-hdt" x="16" y="20" dominant-baseline="central">Estoque</text>
+              <rect class="s-btn" x="412" y="8" width="96" height="24" rx="5"/>
+              <text class="s-btnt" x="460" y="20" text-anchor="middle" dominant-baseline="central">+ novo</text>
+              <rect class="s-bg" x="0" y="48" width="520" height="38"/>
+              <text class="s-f" x="16" y="67" dominant-baseline="central">CÓDIGO</text>
+              <text class="s-f" x="120" y="67" dominant-baseline="central">PRODUTO</text>
+              <text class="s-f" x="504" y="67" text-anchor="end" dominant-baseline="central">ESTOQUE</text>
+              <line class="s-line" x1="0" y1="86" x2="520" y2="86"/>
+              <text class="s-t" x="16" y="105" dominant-baseline="central">LEI001</text><text class="s-x" x="120" y="105" dominant-baseline="central">Leite Integral 1L</text><text class="s-x" x="504" y="105" text-anchor="end" dominant-baseline="central">95 un</text>
+              <line class="s-line" x1="0" y1="124" x2="520" y2="124"/>
+              <text class="s-t" x="16" y="143" dominant-baseline="central">ELE001</text><text class="s-x" x="120" y="143" dominant-baseline="central">Smartphone XYZ</text><text class="s-x" x="504" y="143" text-anchor="end" dominant-baseline="central">19 un</text>
+              <line class="s-line" x1="0" y1="162" x2="520" y2="162"/>
+              <text class="s-t" x="16" y="181" dominant-baseline="central">ARR002</text><text class="s-x" x="120" y="181" dominant-baseline="central">Arroz 5kg</text><text class="s-bad s-b" x="504" y="181" text-anchor="end" dominant-baseline="central">4 un</text>
+              <line class="s-line" x1="0" y1="200" x2="520" y2="200"/>
+              <text class="s-t" x="16" y="219" dominant-baseline="central">FER010</text><text class="s-x" x="120" y="219" dominant-baseline="central">Furadeira 500W</text><text class="s-x" x="504" y="219" text-anchor="end" dominant-baseline="central">12 un</text>
+            </svg>
+          </div>
+          <figcaption class="shot-caption"><p>GET /estoque, GET /estoque/baixo</p></figcaption>
+        </figure>
+
+        <!-- Nova venda -->
+        <figure class="shot" style="margin:0">
+          <div class="shot-body">
+            <svg viewBox="0 0 520 230" role="img" aria-label="Mockup da tela de nova venda">
+              <rect class="s-hd" x="0" y="0" width="520" height="40" rx="6"/>
+              <text class="s-hdt" x="16" y="20" dominant-baseline="central">Nova venda</text>
+              <rect class="s-line" x="0" y="52" width="250" height="32" rx="5"/>
+              <text class="s-t" x="12" y="68" dominant-baseline="central">Cliente: João Silva</text>
+              <rect class="s-line" x="270" y="52" width="250" height="32" rx="5"/>
+              <text class="s-t" x="282" y="68" dominant-baseline="central">Vendedor: Maria Souza</text>
+              <rect class="s-box" x="0" y="96" width="520" height="80" rx="6"/>
+              <text class="s-x" x="14" y="114" dominant-baseline="central">LEI001 · Leite Integral 1L</text><text class="s-t" x="506" y="114" text-anchor="end" dominant-baseline="central">× 5</text>
+              <text class="s-x" x="14" y="137" dominant-baseline="central">ELE001 · Smartphone XYZ</text><text class="s-t" x="506" y="137" text-anchor="end" dominant-baseline="central">× 1</text>
+              <text class="s-ac" x="14" y="160" dominant-baseline="central">Desconto</text><text class="s-ac" x="506" y="160" text-anchor="end" dominant-baseline="central">10%</text>
+              <rect class="s-box" x="0" y="188" width="520" height="40" rx="6"/>
+              <text class="s-x" x="14" y="208" dominant-baseline="central">Total</text>
+              <text class="s-ac s-b" x="506" y="208" text-anchor="end" dominant-baseline="central" style="font-size:15px">R$ 1.497,41</text>
+            </svg>
+          </div>
+          <figcaption class="shot-caption"><p>POST /vendas — valida estoque antes de enviar</p></figcaption>
+        </figure>
+
+        <!-- Vendedor -->
+        <figure class="shot" style="margin:0">
+          <div class="shot-body">
+            <svg viewBox="0 0 520 230" role="img" aria-label="Mockup da tela de detalhe do vendedor">
+              <rect class="s-hd" x="0" y="0" width="520" height="40" rx="6"/>
+              <text class="s-hdt" x="16" y="20" dominant-baseline="central">Maria Souza · MAT-001</text>
+              <rect class="s-box" x="0" y="52" width="164" height="76" rx="8"/>
+              <text class="s-f" x="14" y="72" dominant-baseline="central">COMISSÃO</text>
+              <text class="s-ac s-b" x="14" y="104" dominant-baseline="central" style="font-size:20px">5%</text>
+              <rect class="s-box" x="178" y="52" width="164" height="76" rx="8"/>
+              <text class="s-f" x="192" y="72" dominant-baseline="central">TOTAL VENDIDO</text>
+              <text class="s-x s-b" x="192" y="104" dominant-baseline="central" style="font-size:18px">R$ 1.497</text>
+              <rect class="s-box" x="356" y="52" width="164" height="76" rx="8"/>
+              <text class="s-f" x="370" y="72" dominant-baseline="central">A RECEBER</text>
+              <text class="s-ac s-b" x="370" y="104" dominant-baseline="central" style="font-size:18px">R$ 74,87</text>
+              <text class="s-f" x="0" y="154" dominant-baseline="central">VENDAS REALIZADAS</text>
+              <rect class="s-box" x="0" y="168" width="520" height="38" rx="6"/>
+              <text class="s-t" x="14" y="187" dominant-baseline="central">#1 · 2026-09-21</text>
+              <text class="s-x" x="506" y="187" text-anchor="end" dominant-baseline="central">R$ 1.497,41</text>
+            </svg>
+          </div>
+          <figcaption class="shot-caption"><p>GET /vendedores/:id/comissao, /vendas</p></figcaption>
+        </figure>
+
+        <!-- Início -->
+        <figure class="shot" style="margin:0">
+          <div class="shot-body">
+            <svg viewBox="0 0 520 230" role="img" aria-label="Mockup da tela inicial">
+              <rect class="s-hd" x="0" y="0" width="520" height="40" rx="6"/>
+              <text class="s-hdt" x="16" y="20" dominant-baseline="central">Início</text>
+              <text class="s-hdt" x="494" y="20" text-anchor="end" dominant-baseline="central" style="font-size:12px">API online</text>
+              <circle class="s-ok" cx="504" cy="20" r="5"/>
+              <rect class="s-box" x="0" y="52" width="164" height="68" rx="8"/>
+              <text class="s-f" x="14" y="72" dominant-baseline="central">Clientes</text>
+              <text class="s-x s-b" x="14" y="100" dominant-baseline="central" style="font-size:20px">12</text>
+              <rect class="s-box" x="178" y="52" width="164" height="68" rx="8"/>
+              <text class="s-f" x="192" y="72" dominant-baseline="central">Produtos</text>
+              <text class="s-x s-b" x="192" y="100" dominant-baseline="central" style="font-size:20px">34</text>
+              <rect class="s-box" x="356" y="52" width="164" height="68" rx="8"/>
+              <text class="s-f" x="370" y="72" dominant-baseline="central">Vendas</text>
+              <text class="s-x s-b" x="370" y="100" dominant-baseline="central" style="font-size:20px">7</text>
+              <text class="s-bad s-b" x="0" y="148" dominant-baseline="central">ESTOQUE BAIXO</text>
+              <rect class="s-box" x="0" y="162" width="520" height="38" rx="6"/>
+              <text class="s-x" x="14" y="181" dominant-baseline="central">ARR002 · Arroz 5kg</text>
+              <text class="s-bad" x="506" y="181" text-anchor="end" dominant-baseline="central">4 un restantes</text>
+            </svg>
+          </div>
+          <figcaption class="shot-caption"><p>GET /health, /estoque/baixo</p></figcaption>
+        </figure>
+
+      </div>
+    </div>
+  </section>
+
+  <section id="video">
+    <div class="container">
+      <h2>Vídeo</h2>
+      <a class="video-frame" href="#" target="_blank" rel="noopener">
+        <span class="play"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2l10 6-10 6V2z"/></svg></span>
+        <p>Vídeo demonstrativo no YouTube — link a adicionar</p>
+      </a>
+    </div>
+  </section>
+
+  <section id="api">
+    <div class="container">
+      <h2>Endpoints principais</h2>
+      <div class="table-wrap">
+        <table class="endpoints">
+          <colgroup><col class="c1"><col class="c2"><col></colgroup>
+          <tr><th>Método</th><th>Rota</th><th>Descrição</th></tr>
+          <tr><td>GET/POST</td><td>/clientes</td><td>Listar / criar cliente</td></tr>
+          <tr><td>GET/POST</td><td>/vendedores</td><td>Listar / criar vendedor</td></tr>
+          <tr><td>GET/POST</td><td>/produtos</td><td>Listar / criar produto (perecível ou não)</td></tr>
+          <tr><td>POST</td><td>/vendas</td><td>Criar venda completa — dá baixa no estoque</td></tr>
+          <tr><td>POST</td><td>/compras</td><td>Criar compra completa — dá entrada no estoque</td></tr>
+          <tr><td>POST</td><td>/pagamentos</td><td>Criar e processar pagamento (dinheiro/cartão/pix)</td></tr>
+          <tr><td>GET</td><td>/vendedores/:id/comissao</td><td>Total vendido + comissão calculada</td></tr>
+          <tr><td>GET</td><td>/estoque/baixo</td><td>Produtos com estoque abaixo do limite</td></tr>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section id="relatorio">
+    <div class="container">
+      <h2>Modelo de domínio</h2>
+      <p class="abstract sm">
+        O domínio segue quatro hierarquias abstratas: <b>Pessoa</b> → Cliente, Funcionario → Vendedor, Fornecedor; <b>Produto</b> → ProdutoPerecivel, ProdutoNaoPerecivel; <b>Transacao</b> → Compra, Venda; <b>Pagamento</b> → Dinheiro, Cartao, Pix. Cada classe-base declara métodos virtuais puros implementados de forma diferente em cada subclasse concreta. A persistência mapeia essa herança com tabela base + tabela por subtipo e coluna discriminadora.
+      </p>
+      <div class="link-badges" style="justify-content:flex-start;margin-top:24px">
+        <a class="badge" href="https://github.com/efraimjnegreiros/merko" target="_blank" rel="noopener">Relatório completo no repositório ↗</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="container">
+    <p><a href="https://github.com/efraimjnegreiros/merko" target="_blank" rel="noopener">github.com/efraimjnegreiros/merko</a></p>
+    <p>CIN0135 — Estruturas de Dados Orientadas a Objetos — UFPE — 2026.2</p>
+  </div>
+</footer>
+
+</body>
+</html>
