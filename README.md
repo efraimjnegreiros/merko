@@ -27,6 +27,7 @@ deixa esse terminal aberto, a api fica rodando ate dar Ctrl+C.
 
 ```
 cd merko/cliente
+cd merko-front
 make
 ./merko_front 3000 localhost 8080
 ```
