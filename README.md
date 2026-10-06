@@ -1,37 +1,71 @@
-```markdown
 # sistema de vendas — backend (c++ + sqlite3) + frontend (c++ puro)
 
 sistema completo de gestao de vendas: backend em c++17 com api rest e
 persistencia em sqlite3, e um frontend tambem em c++ puro (sem react, sem js)
 que monta as paginas em html e conversa com a api por tras.
 
-## clonar e rodar (resumo rapido)
+## como rodar
+
+### 1. clonar o repositorio
 
 ```
-git clone https://github.com/efraimjnegreiros/merko.git 
-
+git clone https://github.com/efraimjnegreiros/merko.git
 cd merko
+```
 
+### 2. subir a api (backend)
+
+```
 cd sistema_vendas
-
 make
-
 ./sistema_vendas_api 8080
 ```
 
-em outro terminal:
+deixa esse terminal aberto, a api fica rodando ate dar Ctrl+C.
+
+### 3. subir o front, em outro terminal
 
 ```
-cd merko
-
-cd merko-front
-
+cd merko/merko-front
 make
-
 ./merko_front 3000 localhost 8080
 ```
 
-ai é so abrir http://localhost:3000 no navegador.
+os parametros do front sao: porta do front, host da api e porta da api. se
+nao passar nada usa 3000, localhost e 8080.
+
+obs: a primeira compilacao demora um pouco pq o httplib é grande.
+
+### 4. abrir no navegador
+
+http://localhost:3000
+
+### se der erro no front
+
+se o `merko_front` nao rodar (ex: `exec format error`, binario de outra
+maquina/sistema, ou `make` dizendo "Nothing to be done" sem motivo), apaga o
+binario e forca a recompilacao local:
+
+```
+rm -f merko_front
+make clean
+make
+./merko_front 3000 localhost 8080
+```
+
+isso garante que o binario foi gerado pelo seu proprio compilador, na sua
+maquina — resolve praticamente todo caso de binario que nao roda.
+
+### binario de demonstracao do backend (cli)
+
+```
+cd sistema_vendas
+make run
+```
+
+roda um cenario de exemplo (cadastros, compra, venda, pagamento, comissao,
+consulta de estoque e historico) e termina. util pra testar o backend sem
+precisar do front.
 
 ## estrutura geral
 
@@ -104,78 +138,6 @@ linhas do banco.
 o sqlite3 ta embutido no projeto como **amalgamation** (`sqlite3.c` +
 `sqlite3.h` em `third_party/sqlite3/`), entao **nao precisa instalar
 libsqlite3-dev** — o makefile compila o amalgamation junto com o resto.
-
-## como rodar (passo a passo)
-
-### 1. clonar o repositorio
-
-```
-git clone https://github.com/efraimjnegreiros/merko.git
-
-cd merko
-```
-
-### 2. subir a api (backend)
-
-```
-cd sistema_vendas
-
-make
-
-./sistema_vendas_api 8080
-```
-
-deixa esse terminal aberto, a api fica rodando ate dar Ctrl+C.
-
-### 3. subir o front, em outro terminal
-
-```
-cd merko/merko-front
-
-make
-
-./merko_front 3000 localhost 8080
-```
-
-os parametros do front sao: porta do front, host da api e porta da api. se
-nao passar nada usa 3000, localhost e 8080.
-
-### 4. abrir no navegador
-
-http://localhost:3000
-
-obs: a primeira compilacao demora um pouco pq o httplib é grande.
-
-### se der erro no front
-
-se o `merko_front` nao rodar (ex: `exec format error`, binario de outra
-maquina/sistema, ou `make` dizendo "Nothing to be done" sem motivo), apaga o
-binario e forca a recompilacao local:
-
-```
-rm -f merko_front
-
-make clean
-
-make
-
-./merko_front 3000 localhost 8080
-```
-
-isso garante que o binario foi gerado pelo seu proprio compilador, na sua
-maquina — resolve praticamente todo caso de binario que nao roda.
-
-### binario de demonstracao do backend (cli)
-
-```
-cd sistema_vendas
-
-make run
-```
-
-roda um cenario de exemplo (cadastros, compra, venda, pagamento, comissao,
-consulta de estoque e historico) e termina. util pra testar o backend sem
-precisar do front.
 
 ## api rest (backend)
 
@@ -284,4 +246,3 @@ curl http://localhost:8080/vendedores/2/comissao
 `git`, `g++` (c++17), `gcc`, `make`. nenhuma dependencia externa alem disso —
 sqlite3, httplib e nlohmann/json ja estao embutidos em `third_party/` nos
 dois projetos.
-```
