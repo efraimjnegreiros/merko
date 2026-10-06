@@ -26,7 +26,7 @@ deixa esse terminal aberto, a api fica rodando ate dar Ctrl+C.
 ### 3. subir o front, em outro terminal
 
 ```
-cd merko/merko-front
+cd merko/cliente
 make
 ./merko_front 3000 localhost 8080
 ```
