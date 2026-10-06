@@ -16,7 +16,7 @@ cd merko
 ### 2. subir a api (backend)
 
 ```
-cd sistema_vendas
+cd server
 make
 ./sistema_vendas_api 8080
 ```
